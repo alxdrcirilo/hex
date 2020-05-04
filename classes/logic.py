@@ -22,3 +22,22 @@ class Logic:
     def is_game_over(self):
         if not self.get_possible_moves():
             self.GAME_OVER = True
+
+    def get_neighbours(self, coordinates: tuple):
+        x, y = coordinates
+        neighbours = []
+        for row in range(-1, 2):
+            for col in range(-1, 2):
+                if row != col:
+                    node = ((x + row, y + col))
+                    if self.is_valid(node):
+                       neighbours.append(node)
+
+        return neighbours
+
+    def is_valid(self, coordinates: tuple):
+        """
+        Returns True if node exists.
+        """
+        return all(0 <= _ < self.hex_ui.BOARD_SIZE for _ in coordinates)
+

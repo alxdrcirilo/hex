@@ -41,9 +41,6 @@ class UI:
         return x, y
 
     def draw_hexagon(self, surface, color, position, node: int):
-        """
-        Source: https://nerdparadise.com/programming/pygameregularpolygon
-        """
         # Vertex count and radius
         n = 6
         x, y = position
@@ -79,37 +76,66 @@ class UI:
 
         # Bounding box (colour-coded)
         # Top side
+        bbox_offset = [0, 3]
         if 0 < node < self.BOARD_SIZE:
-            pygame.draw.polygon(surface,
-                                self.red,
-                                (self.HEX_LOOKUP[node - 1][3],
-                                 self.HEX_LOOKUP[node - 1][4],
-                                 self.HEX_LOOKUP[node][3]))
+            gfxdraw.filled_polygon(surface,
+                                   ([self.HEX_LOOKUP[node - 1][3][_] - bbox_offset[_] for _ in range(2)],
+                                    [self.HEX_LOOKUP[node - 1][4][_] - bbox_offset[_] for _ in range(2)],
+                                    [self.HEX_LOOKUP[node][3][_] - bbox_offset[_] for _ in range(2)]),
+                                   self.red)
+            gfxdraw.aapolygon(surface,
+                              ([self.HEX_LOOKUP[node - 1][3][_] - bbox_offset[_] for _ in range(2)],
+                               [self.HEX_LOOKUP[node - 1][4][_] - bbox_offset[_] for _ in range(2)],
+                               [self.HEX_LOOKUP[node][3][_] - bbox_offset[_] for _ in range(2)]),
+                              self.red)
 
-        # Top side
+        # Bottom side
         if self.BOARD_SIZE ** 2 - self.BOARD_SIZE < node < self.BOARD_SIZE ** 2:
-            pygame.draw.polygon(surface,
-                                self.red,
-                                (self.HEX_LOOKUP[node - 1][0],
-                                 self.HEX_LOOKUP[node - 1][5],
-                                 self.HEX_LOOKUP[node][0]))
+            gfxdraw.filled_polygon(surface,
+                                   ([self.HEX_LOOKUP[node - 1][0][_] + bbox_offset[_] for _ in range(2)],
+                                    [self.HEX_LOOKUP[node - 1][5][_] + bbox_offset[_] for _ in range(2)],
+                                    [self.HEX_LOOKUP[node][0][_] + bbox_offset[_] for _ in range(2)]),
+                                   self.red)
+            gfxdraw.aapolygon(surface,
+                              ([self.HEX_LOOKUP[node - 1][0][_] + bbox_offset[_] for _ in range(2)],
+                               [self.HEX_LOOKUP[node - 1][5][_] + bbox_offset[_] for _ in range(2)],
+                               [self.HEX_LOOKUP[node][0][_] + bbox_offset[_] for _ in range(2)]),
+                              self.red)
 
         # Left side
+        bbox_offset = [3, -3]
         if node % self.BOARD_SIZE == 0:
             if node >= self.BOARD_SIZE:
-                pygame.draw.polygon(surface,
-                                    self.blue,
-                                    (self.HEX_LOOKUP[node - self.BOARD_SIZE][1],
-                                     self.HEX_LOOKUP[node - self.BOARD_SIZE][0],
-                                     self.HEX_LOOKUP[node][1]))
+                gfxdraw.filled_polygon(surface,
+                                       ([self.HEX_LOOKUP[node - self.BOARD_SIZE][1][_] - bbox_offset[_] for _ in
+                                         range(2)],
+                                        [self.HEX_LOOKUP[node - self.BOARD_SIZE][0][_] - bbox_offset[_] for _ in
+                                         range(2)],
+                                        [self.HEX_LOOKUP[node][1][_] - bbox_offset[_] for _ in range(2)]),
+                                       self.blue)
+                gfxdraw.aapolygon(surface,
+                                  ([self.HEX_LOOKUP[node - self.BOARD_SIZE][1][_] - bbox_offset[_] for _ in range(2)],
+                                   [self.HEX_LOOKUP[node - self.BOARD_SIZE][0][_] - bbox_offset[_] for _ in range(2)],
+                                   [self.HEX_LOOKUP[node][1][_] - bbox_offset[_] for _ in range(2)]),
+                                  self.blue)
+
         # Right side
         if (node + 1) % self.BOARD_SIZE == 0:
             if node > self.BOARD_SIZE:
-                pygame.draw.polygon(surface,
-                                    self.blue,
-                                    (self.HEX_LOOKUP[node - self.BOARD_SIZE][4],
-                                     self.HEX_LOOKUP[node - self.BOARD_SIZE][5],
-                                     self.HEX_LOOKUP[node][4]))
+                gfxdraw.filled_polygon(surface,
+                                       ([self.HEX_LOOKUP[node - self.BOARD_SIZE][4][_] + bbox_offset[_] for _ in
+                                         range(2)],
+                                        [self.HEX_LOOKUP[node - self.BOARD_SIZE][5][_] + bbox_offset[_] for _ in
+                                         range(2)],
+                                        [self.HEX_LOOKUP[node][4][_] + bbox_offset[_] for _ in range(2)]),
+                                       self.blue)
+                gfxdraw.aapolygon(surface,
+                                  ([self.HEX_LOOKUP[node - self.BOARD_SIZE][4][_] + bbox_offset[_] for _ in
+                                    range(2)],
+                                   [self.HEX_LOOKUP[node - self.BOARD_SIZE][5][_] + bbox_offset[_] for _ in
+                                    range(2)],
+                                   [self.HEX_LOOKUP[node][4][_] + bbox_offset[_] for _ in range(2)]),
+                                  self.blue)
 
     def draw_text(self):
         alphabet = list(map(chr, range(97, 123)))

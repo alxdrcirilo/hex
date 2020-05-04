@@ -1,59 +1,90 @@
-from random import choice
 import sys
+from random import choice
 
 import pygame
 
-from classes.ui import UI
 from classes.logic import Logic
+from classes.ui import UI
 
 pygame.init()
 pygame.display.set_caption("Hex")
 
-hex_ui = UI(size=11)
-hex_logic = Logic(ui=hex_ui)
 
-while not hex_logic.GAME_OVER:
-    # Initialize board
-    hex_ui.draw_board()
+class Main:
+    def __init__(self, size: int):
+        # Instantiate classes
+        self.hex_ui = UI(size)
+        self.hex_logic = Logic(self.hex_ui)
 
-    # Source: https://bit.ly/2Wl5Grz
-    node = None
-    mouse_pos = pygame.mouse.get_pos()
-    for _, rect in enumerate(hex_ui.RECTS):
-        if rect.collidepoint(mouse_pos):
-            node = _
-            break
+        # Initialize node variable
+        self.node = None
 
-    if type(node) is int:
-        row, column = int(node / hex_ui.BOARD_SIZE), node % hex_ui.BOARD_SIZE
-        hex_ui.draw_hexagon(hex_ui.SCREEN, hex_ui.green, hex_ui.get_coordinates(row, column), node)
+        self.play()
 
-    pygame.display.update()
-    hex_ui.CLOCK.tick(30)
+    def get_node_hover(self):
+        # Source: https://bit.ly/2Wl5Grz
+        mouse_pos = pygame.mouse.get_pos()
+        for _, rect in enumerate(self.hex_ui.RECTS):
+            if rect.collidepoint(mouse_pos):
+                self.node = _
+                break
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.MOUSEBUTTONUP:
-            try:
-                # Human player
-                hex_ui.COLOR[node] = hex_ui.blue if hex_ui.STARTING_PLAYER else hex_ui.red
+        if type(self.node) is int:
+            row, column = int(self.node / self.hex_ui.BOARD_SIZE), self.node % self.hex_ui.BOARD_SIZE
+            self.hex_ui.draw_hexagon(self.hex_ui.SCREEN, self.hex_ui.green, self.hex_ui.get_coordinates(row, column),
+                                     self.node)
 
-                x, y = hex_ui.get_node_coordinates(node)
-                hex_logic.logger[x][y] = 1
+        return self.node
 
-                hex_logic.is_game_over()
+    def get_action(self):
+        try:
+            # Human player
+            self.hex_ui.COLOR[self.node] = self.hex_ui.blue if self.hex_ui.STARTING_PLAYER else self.hex_ui.red
 
-                # Next player
-                hex_ui.STARTING_PLAYER = not hex_ui.STARTING_PLAYER
+            x, y = self.hex_ui.get_node_coordinates(self.node)
+            # TODO: get neighbours
+            neighbours = self.hex_logic.get_neighbours((x, y))
+            print("neighbours", neighbours)
 
-                move = choice(hex_logic.get_possible_moves())
+            self.hex_logic.logger[x][y] = 1
 
-                hex_logic.make_move(move)
-                x, y = move
-                hex_logic.logger[x][y] = 2
+            self.hex_logic.is_game_over()
 
-                hex_logic.is_game_over()
-            except TypeError:
-                pass
+            # Next player
+            self.hex_ui.STARTING_PLAYER = not self.hex_ui.STARTING_PLAYER
+
+            move = choice(self.hex_logic.get_possible_moves())
+
+            self.hex_logic.make_move(move)
+            x, y = move
+            self.hex_logic.logger[x][y] = 2
+
+            self.hex_logic.is_game_over()
+        except TypeError:
+            pass
+
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                pygame.quit()
+                sys.exit()
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                self.get_action()
+
+    def play(self):
+        while not self.hex_logic.GAME_OVER:
+            self.hex_ui.draw_board()
+
+            self.node = self.get_node_hover()
+            pygame.display.update()
+            self.hex_ui.CLOCK.tick(30)
+
+            self.handle_events()
+
+
+if __name__ == "__main__":
+    game = Main(size=11)
