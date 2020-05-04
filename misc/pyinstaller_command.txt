@@ -1,0 +1,1 @@
+pyinstaller --windowed --onefile --icon="imgs/icon.ico" --name="Hex" main.py
