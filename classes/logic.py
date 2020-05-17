@@ -1,44 +1,69 @@
-from random import choice
+from typing import Union
 
 import numpy as np
+
+from classes.mcts import MCTS
 
 
 class Logic:
     def __init__(self, ui):
-        self.hex_ui = ui
+        self.ui = ui
 
         self.GAME_OVER = False
-        self.logger = np.zeros(shape=(self.hex_ui.BOARD_SIZE, self.hex_ui.BOARD_SIZE), dtype=np.int8)
+        self.MCTS_GAME_OVER = False
+        self.logger = np.zeros(shape=(self.ui.board_size, self.ui.board_size), dtype=np.int8)
 
-    def get_possible_moves(self):
-        x, y = np.where(self.logger == 0)
+    def get_possible_moves(self, board: np.ndarray):
+        x, y = np.where(board == 0)
         free_coordinates = [(i, j) for i, j in zip(x, y)]
 
         return free_coordinates
 
-    def make_move(self, coordinates: tuple, player: int):
+    def make_move(self, coordinates: tuple, player: Union[int, None]):
         x, y = coordinates
-        node = x * self.hex_ui.BOARD_SIZE + y
+        node = x * self.ui.board_size + y
 
         if player is None:
-            self.hex_ui.COLOR[node] = self.hex_ui.green
+            self.ui.color[node] = self.ui.green
         else:
-            self.hex_ui.COLOR[node] = self.hex_ui.blue if player is self.hex_ui.BLUE_PLAYER else self.hex_ui.red
+            self.ui.color[node] = self.ui.blue if player is self.ui.BLUE_PLAYER else self.ui.red
 
-    def is_game_over(self):
-        if not self.get_possible_moves():
-            self.GAME_OVER = True
+    def is_game_over(self, player: int, board: np.ndarray, mcts_mode: bool = False):
+        """
+        Sets GAME_OVER to True if there are no more moves to play.
+        Returns the winning player.
+        """
+        if not self.get_possible_moves(board):
+            if not mcts_mode:
+                self.GAME_OVER = True
+            else:
+                self.MCTS_GAME_OVER = True
+
+        for _ in range(self.ui.board_size):
+            if player is self.ui.BLUE_PLAYER:
+                border = (_, 0)
+            if player is self.ui.RED_PLAYER:
+                border = (0, _)
+
+            path = self.traverse(border, player, board, {}, mcts_mode)
+            if path:
+                if not mcts_mode:
+                    # Highlights the winning path in green
+                    for step in path.keys():
+                        self.make_move(step, None)
+
+                return player
 
     def is_border(self, node: tuple, player: int):
         x, y = node
-        if player is self.hex_ui.BLUE_PLAYER:
-            if y == self.hex_ui.BOARD_SIZE - 1:
+        if player is self.ui.BLUE_PLAYER:
+            if y == self.ui.board_size - 1:
                 return True
-        elif player is self.hex_ui.RED_PLAYER:
-            if x == self.hex_ui.BOARD_SIZE - 1:
+        elif player is self.ui.RED_PLAYER:
+            if x == self.ui.board_size - 1:
                 return True
 
-    def traverse(self, node: tuple, player: int, visited: dict):
+    def traverse(self, node: tuple, player: int, board: np.ndarray, visited: dict, mcts_mode: bool):
         x, y = node
         neighbours = self.get_neighbours((x, y))
 
@@ -46,16 +71,19 @@ class Logic:
             if visited[(x, y)]:
                 pass
         except KeyError:
-            if self.logger[x][y] == player:
+            if board[x][y] == player:
                 visited[(x, y)] = 1
 
                 if self.is_border(node, player):
-                    self.GAME_OVER = True
+                    if not mcts_mode:
+                        self.GAME_OVER = True
+                    else:
+                        self.MCTS_GAME_OVER = True
 
                 for neighbour in neighbours:
-                    self.traverse(neighbour, player, visited)
+                    self.traverse(neighbour, player, board, visited, mcts_mode)
 
-        if self.GAME_OVER:
+        if self.GAME_OVER or self.MCTS_GAME_OVER:
             return visited
 
     def get_neighbours(self, coordinates: tuple):
@@ -74,38 +102,35 @@ class Logic:
         """
         Returns True if node exists.
         """
-        return all(0 <= _ < self.hex_ui.BOARD_SIZE for _ in coordinates)
+        return all(0 <= _ < self.ui.board_size for _ in coordinates)
 
-    def get_action(self, node):
-        # TODO: rewrite this function properly
-        try:
-            # Human player
-            x, y = self.hex_ui.get_true_coordinates(node)
-            self.make_move((x, y), self.hex_ui.BLUE_PLAYER)
-            self.logger[x][y] = 1
+    def is_node_free(self, coordinates: tuple, board: np.ndarray):
+        """
+        Returns True if node is free.
+        """
+        x, y = coordinates
 
-            self.is_game_over()
-            for row in range(self.hex_ui.BOARD_SIZE):
-                path = self.traverse((row, 0), self.hex_ui.BLUE_PLAYER, {})
-                if path:
-                    for step in path.keys():
-                        self.make_move(step, None)
+        return True if not board[x][y] else False
 
-                    return self.hex_ui.BLUE_PLAYER
+    def get_action(self, node: Union[int, None], player: int) -> int:
+        # Human player
+        if type(node) is int:
+            x, y = self.ui.get_true_coordinates(node)
+            # Debug: random player
+            # x, y = choice(self.get_possible_moves(self.logger))
 
-            # Next player
-            x, y = choice(self.get_possible_moves())
-            self.make_move((x, y), self.hex_ui.RED_PLAYER)
-            self.logger[x][y] = 2
+        # AI player
+        else:
+            # Debug: random player
+            # x, y = choice(self.get_possible_moves(self.logger))
+            ##############################################################################
+            # TODO: MCTS
+            self.mcts = MCTS(board_state=self.logger, logic=self, starting_player=self.ui.RED_PLAYER)
+            x, y = self.mcts.start(itermax=1000)
+            ##############################################################################
 
-            self.is_game_over()
-            for column in range(self.hex_ui.BOARD_SIZE):
-                path = self.traverse((0, column), self.hex_ui.RED_PLAYER, {})
-                if path:
-                    for node in path.keys():
-                        self.make_move(node, None)
+        assert self.is_node_free((x, y), self.logger), "node is busy"
+        self.make_move((x, y), player)
+        self.logger[x][y] = player
 
-                    return self.hex_ui.RED_PLAYER
-
-        except TypeError:
-            pass
+        return self.is_game_over(player, self.logger)
