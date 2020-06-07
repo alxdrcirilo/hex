@@ -7,10 +7,10 @@ from classes.ui import UI
 
 
 class Game:
-    def __init__(self, board_size: int):
+    def __init__(self, board_size: int, itermax: int):
         # Instantiate classes
         self.ui = UI(board_size)
-        self.logic = Logic(self.ui)
+        self.logic = Logic(self.ui, itermax)
 
         # Initialize variables
         self.node = None

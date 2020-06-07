@@ -3,7 +3,9 @@ from math import log, sqrt, inf
 from random import choice
 
 import numpy as np
-from tqdm import tqdm
+from rich.console import Console
+from rich.progress import track
+from rich.table import Table
 
 
 class Node(object):
@@ -36,11 +38,10 @@ class MCTS:
 
     def start(self, itermax: int):
         root_node = Node(self.logic, self.root_state)
-        for _ in tqdm(range(itermax)):
+
+        for _ in track(range(itermax), description="MCTS:", total=itermax):
             node = root_node
             state = copy.copy(self.root_state)
-            # Debug
-            # print(node.untried_moves)
 
             # Select
             while node.untried_moves == [] and node.children != []:
@@ -48,7 +49,8 @@ class MCTS:
                 uct_values = []
                 for child in node.children:
                     uct_values.append(self.select(child))
-                if all([value == 0 for value in uct_values]):
+                # TODO: is this correct?
+                if any([value == inf for value in uct_values]):
                     node = choice(node.children)
                 else:
                     node = node.children[np.argmax(uct_values)]
@@ -62,7 +64,7 @@ class MCTS:
                 node.add_child(Node(self.logic, state, (x, y)))
 
             # Playout
-            while self.logic.get_possible_moves(state) != []:
+            while self.logic.get_possible_moves(state) != [] or not self.logic.MCTS_GAME_OVER:
                 x, y = choice(self.logic.get_possible_moves(state))
 
                 player = self.turn[self.turn_state]
@@ -71,16 +73,17 @@ class MCTS:
                 for player in [1, 2]:
                     winner = self.logic.is_game_over(player, state, True)
 
-                self.next_turn()
+                    if winner:
+                        break
 
                 if winner:
-                    # Reset MCTS_GAME_OVER
-                    self.logic.MCTS_GAME_OVER = False
                     break
+                else:
+                    self.next_turn()
 
             # Backpropagation
             while node != None:
-                win_value = 1 if winner is self.starting_player else -1
+                win_value = 1 if winner is self.starting_player else 0
 
                 node.wins += win_value
                 node.visits += 1
@@ -89,10 +92,14 @@ class MCTS:
             root_node.wins += win_value
             root_node.visits += 1
 
+            # Reset MCTS_GAME_OVER
+            self.logic.MCTS_GAME_OVER = False
+
         result = root_node.children[np.argmax([node.visits for node in root_node.children])].move
-        print([node.visits for node in root_node.children])
-        for n in root_node.children:
-            print(n.wins, n.visits)
+
+        output = [(node.wins, node.visits, node.move) for node in root_node.children]
+        self.print_output(output, result)
+
         return result
 
     def next_turn(self):
@@ -119,9 +126,23 @@ class MCTS:
 
         return value
 
-    # def reset(self, board_state, move):
-    #     self.state = copy.copy(board_state)
-    #     x, y = move
-    #     self.state[x][y] = self.turn[self.turn_state]
-    #     self.logic.MCTS_GAME_OVER = False
-    #     self.turn_state = True
+    def print_output(self, output, result):
+        print()
+        console = Console()
+
+        table = Table(show_header=True, header_style="bold red")
+        table.add_column("Wins", justify="center")
+        table.add_column("Visits", justify="center")
+        table.add_column("Move", justify="center")
+        for row in output:
+            if row[2] == result:
+                w = "[cyan]" + str(row[0]) + "[/cyan]"
+                v = "[cyan]" + str(row[1]) + "[/cyan]"
+                m = "[cyan]" + str(row[2]) + "[/cyan]"
+            else:
+                w = str(row[0])
+                v = str(row[1])
+                m = str(row[2])
+            table.add_row(w, v, m)
+
+        console.print(table)

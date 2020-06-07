@@ -6,8 +6,9 @@ from classes.mcts import MCTS
 
 
 class Logic:
-    def __init__(self, ui):
+    def __init__(self, ui, itermax):
         self.ui = ui
+        self.itermax = itermax
 
         self.GAME_OVER = False
         self.MCTS_GAME_OVER = False
@@ -126,7 +127,7 @@ class Logic:
             ##############################################################################
             # TODO: MCTS
             self.mcts = MCTS(board_state=self.logger, logic=self, starting_player=self.ui.RED_PLAYER)
-            x, y = self.mcts.start(itermax=1000)
+            x, y = self.mcts.start(itermax=self.itermax)
             ##############################################################################
 
         assert self.is_node_free((x, y), self.logger), "node is busy"

@@ -71,7 +71,7 @@ class UI:
         self.rects.append(rect)
 
         # Bounding box (colour-coded)
-        bbox_offset = [0, 3]
+        bbox_offset = [0, 0]
 
         # Top side
         if 0 < node < self.board_size:
@@ -98,7 +98,7 @@ class UI:
                               self.red)
 
         # Left side
-        bbox_offset = [3, -3]
+        bbox_offset = [0, 0]
 
         if node % self.board_size == 0:
             if node >= self.board_size:
