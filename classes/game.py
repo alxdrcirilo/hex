@@ -7,7 +7,11 @@ from classes.ui import UI
 
 
 class Game:
-    def __init__(self, board_size: int, itermax: int):
+    def __init__(self, board_size: int, itermax: int, mode: str):
+        # Select mode
+        self.modes = {"cpu_vs_cpu": 0,
+                      "man_vs_cpu": 0}
+        self.modes[mode] = 1
         # Instantiate classes
         self.ui = UI(board_size)
         self.logic = Logic(self.ui, itermax)
@@ -30,15 +34,18 @@ class Game:
                 pygame.quit()
                 sys.exit()
 
-            if not self.logic.GAME_OVER:
-                if event.type == pygame.MOUSEBUTTONUP:
-                    # BLUE player's turn
-                    if not self.check_move(self.node, self.turn[self.turn_state]):
+            if event.type == pygame.MOUSEBUTTONUP or self.modes["cpu_vs_cpu"]:
+                if self.modes["cpu_vs_cpu"]:
+                    node = None
+                elif self.modes["man_vs_cpu"]:
+                    node = self.node
+                # BLUE player's turn
+                if not self.check_move(node, self.turn[self.turn_state]):
+                    break
+                # RED player's turn
+                else:
+                    if not self.check_move(None, self.turn[self.turn_state]):
                         break
-                    # RED player's turn
-                    else:
-                        if not self.check_move(None, self.turn[self.turn_state]):
-                            break
 
     def check_move(self, node, player):
         # Forbid playing on already busy node
@@ -47,7 +54,9 @@ class Game:
         except AssertionError:
             return False
 
+        # Next turn
         self.turn_state = not self.turn_state
+
         # If there is a winner, break the loop
         if self.get_winner():
             return False
@@ -60,7 +69,21 @@ class Game:
             return True
 
     def play(self):
-        while True:
+        if self.modes["cpu_vs_cpu"]:
+            while True:
+                self.ui.draw_board()
+                pygame.display.update()
+                self.ui.clock.tick(30)
+
+                # BLUE player's turn
+                if not self.check_move(self.node, self.turn[self.turn_state]):
+                    break
+                # RED player's turn
+                else:
+                    if not self.check_move(None, self.turn[self.turn_state]):
+                        break
+
+        elif self.modes["man_vs_cpu"]:
             self.ui.draw_board()
 
             self.node = self.ui.get_node_hover()

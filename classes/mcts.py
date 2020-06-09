@@ -36,7 +36,7 @@ class MCTS:
         self.turn = {True: self.starting_player, False: self.other_player}
         self.turn_state = True
 
-    def start(self, itermax: int):
+    def start(self, itermax: int, verbose: bool = False):
         root_node = Node(self.logic, self.root_state)
 
         for _ in track(range(itermax), description="MCTS:", total=itermax):
@@ -50,7 +50,7 @@ class MCTS:
                 for child in node.children:
                     uct_values.append(self.select(child))
                 # TODO: is this correct?
-                if any([value == inf for value in uct_values]):
+                if all([value == inf for value in uct_values]):
                     node = choice(node.children)
                 else:
                     node = node.children[np.argmax(uct_values)]
@@ -64,13 +64,14 @@ class MCTS:
                 node.add_child(Node(self.logic, state, (x, y)))
 
             # Playout
-            while self.logic.get_possible_moves(state) != [] or not self.logic.MCTS_GAME_OVER:
+            while self.logic.get_possible_moves(state) and not self.logic.MCTS_GAME_OVER:
                 x, y = choice(self.logic.get_possible_moves(state))
 
                 player = self.turn[self.turn_state]
                 state[x][y] = player
 
                 for player in [1, 2]:
+                    global winner
                     winner = self.logic.is_game_over(player, state, True)
 
                     if winner:
@@ -98,7 +99,9 @@ class MCTS:
         result = root_node.children[np.argmax([node.visits for node in root_node.children])].move
 
         output = [(node.wins, node.visits, node.move) for node in root_node.children]
-        self.print_output(output, result)
+
+        if verbose:
+            self.print_output(output, result)
 
         return result
 
@@ -116,10 +119,6 @@ class MCTS:
         # If node has not been visited yet
         if not Ni or not ni:
             value = inf
-        # if not Ni:
-        #     Ni = inf
-        # if not ni:
-        #     ni = inf
 
         else:
             value = wi / ni + c * sqrt(log(Ni) / ni)
@@ -127,7 +126,6 @@ class MCTS:
         return value
 
     def print_output(self, output, result):
-        print()
         console = Console()
 
         table = Table(show_header=True, header_style="bold red")
