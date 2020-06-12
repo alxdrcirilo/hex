@@ -1,3 +1,4 @@
+from random import choice
 from typing import Union
 
 import numpy as np
@@ -116,20 +117,20 @@ class Logic:
     def get_action(self, node: Union[int, None], player: int) -> int:
         # Human player
         if player is self.ui.BLUE_PLAYER:
-            x, y = self.ui.get_true_coordinates(node)
+            # x, y = self.ui.get_true_coordinates(node)
             # Debug: random player
-            # x, y = choice(self.get_possible_moves(self.logger))
+            x, y = choice(self.get_possible_moves(self.logger))
             # self.mcts = MCTS(board_state=self.logger, logic=self, starting_player=self.ui.BLUE_PLAYER)
             # x, y = self.mcts.start(itermax=self.itermax, verbose=False)
 
         # AI player
-        else:
+        if player is self.ui.RED_PLAYER:
             # Debug: random player
             # x, y = choice(self.get_possible_moves(self.logger))
             ##############################################################################
             # TODO: MCTS
             self.mcts = MCTS(board_state=self.logger, logic=self, starting_player=self.ui.RED_PLAYER)
-            x, y = self.mcts.start(itermax=self.itermax, verbose=True)
+            x, y = self.mcts.start(itermax=self.itermax, verbose=False)
             ##############################################################################
 
         assert self.is_node_free((x, y), self.logger), "node is busy"

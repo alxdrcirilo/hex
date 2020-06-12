@@ -79,9 +79,9 @@ def main():
 
 if __name__ == "__main__":
     BOARD_SIZE = 4
-    ITERMAX = 1000
-    MODE = "man_vs_cpu"
-    N_GAME, TOTAL_GAMES = 0, 10
+    ITERMAX = 100
+    MODE = "cpu_vs_cpu"
+    N_GAME, TOTAL_GAMES = 0, 100
 
     if MODE is "cpu_vs_cpu":
         tournament()
