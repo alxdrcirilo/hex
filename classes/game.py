@@ -54,6 +54,7 @@ class Game:
                     node = None
                 elif self.modes["man_vs_cpu"]:
                     node = self.node
+
                 # BLUE player's turn
                 if not self.check_move(node, self.turn[self.turn_state]):
                     break
