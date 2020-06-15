@@ -48,7 +48,6 @@ class MCTS:
             while node.untried_moves == [] and node.children != []:
                 # Node is fully expanded and non-terminal
                 uct_values = [self.select(child) for child in node.children]
-                # TODO: is this correct?
                 if all([value == inf for value in uct_values]):
                     node = choice(node.children)
                 else:
@@ -94,8 +93,6 @@ class MCTS:
             root_node.wins += win_value
             root_node.visits += 1
 
-        # TODO: is this correct?
-        # result = root_node.children[np.argmax([self.select(node) for node in root_node.children])].move
         result = root_node.children[np.argmax([node.visits for node in root_node.children])].move
 
         output = [(node.wins, node.visits, node.move) for node in root_node.children]

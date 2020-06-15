@@ -1,13 +1,15 @@
 import sys
 
 import pygame
+from rich.console import Console
+from rich.table import Table
 
 from classes.logic import Logic
 from classes.ui import UI
 
 
 class Game:
-    def __init__(self, board_size: int, itermax: int, mode: str):
+    def __init__(self, board_size: int, itermax: int, mode: str, blue_starts: bool = True):
         # Select mode
         self.modes = {"cpu_vs_cpu": 0,
                       "man_vs_cpu": 0}
@@ -22,7 +24,20 @@ class Game:
         self.turn = {True: self.ui.BLUE_PLAYER, False: self.ui.RED_PLAYER}
 
         # BLUE player starts
-        self.turn_state = True
+        self.turn_state = blue_starts
+
+    def get_game_info(self, args):
+        console = Console()
+
+        table = Table(title="Hex Game", show_header=True, header_style="bold magenta")
+        table.add_column("Parameters", justify="center")
+        table.add_column("Value", justify="right")
+        table.add_row("Board size", str(args[0]))
+        table.add_row("MCTS itermax", str(args[1]))
+        table.add_row("Mode", str(args[2]))
+        table.add_row("Game", str(args[3]))
+
+        console.print(table)
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -85,10 +100,7 @@ class Game:
 
         elif self.modes["man_vs_cpu"]:
             self.ui.draw_board()
-
             self.node = self.ui.get_node_hover()
-
             pygame.display.update()
             self.ui.clock.tick(30)
-
             self.handle_events()
