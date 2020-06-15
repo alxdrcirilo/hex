@@ -31,8 +31,6 @@ class Tournament:
         while not game.winner:
             game.play()
 
-        return game.winner
-
     def start(self):
         # r1 (BLUE) r2 (RED)
         r1, r2 = Rating(), Rating()

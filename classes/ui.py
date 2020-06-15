@@ -71,7 +71,7 @@ class UI:
         self.rects.append(rect)
 
         # Bounding box (colour-coded)
-        bbox_offset = [0, 0]
+        bbox_offset = [0, 3]
 
         # Top side
         if 0 < node < self.board_size:
@@ -98,7 +98,7 @@ class UI:
                               self.red)
 
         # Left side
-        bbox_offset = [0, 0]
+        bbox_offset = [3, -3]
 
         if node % self.board_size == 0:
             if node >= self.board_size:
@@ -172,8 +172,7 @@ class UI:
         if type(self.node) is int:
             # Node
             row, column = int(self.node / self.board_size), self.node % self.board_size
-            self.draw_hexagon(self.screen, self.green, self.get_coordinates(row, column),
-                              self.node)
+            self.draw_hexagon(self.screen, self.green, self.get_coordinates(row, column), self.node)
 
             # Text
             x, y = self.get_true_coordinates(self.node)

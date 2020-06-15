@@ -36,7 +36,7 @@ class MCTS:
         self.turn = {True: self.starting_player, False: self.other_player}
         self.turn_state = True
 
-    def start(self, itermax: int, verbose: bool = False):
+    def start(self, itermax: int, verbose: bool = True):
         root_node = Node(self.logic, self.root_state)
 
         for _ in track(range(itermax), description="MCTS:", total=itermax):

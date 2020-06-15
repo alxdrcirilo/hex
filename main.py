@@ -11,11 +11,10 @@ def main(args):
 
 
 if __name__ == "__main__":
-    for _ in [25, 50, 75, 100, 200, 500, 1000]:
-        BOARD_SIZE = 5
-        ITERMAX = _
-        MODE = "cpu_vs_cpu"
-        GAME_COUNT, N_GAMES = 0, 200
+    BOARD_SIZE = 6
+    ITERMAX = 500
+    MODE = "man_vs_cpu"
+    GAME_COUNT, N_GAMES = 0, 200
 
-        args = BOARD_SIZE, ITERMAX, MODE, GAME_COUNT, N_GAMES
-        main(args)
+    args = BOARD_SIZE, ITERMAX, MODE, GAME_COUNT, N_GAMES
+    main(args)
