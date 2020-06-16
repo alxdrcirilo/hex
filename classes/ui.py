@@ -1,5 +1,6 @@
 from math import cos, sin, pi, radians
 
+import numpy as np
 import pygame
 from pygame import gfxdraw
 from pygame import time
@@ -56,6 +57,7 @@ class UI:
                                  y + self.hex_radius * sin(radians(90) + 2 * pi * _ / n))
                                 for _ in range(n)],
                                self.color[node])
+
         # Antialiased shape outline
         gfxdraw.aapolygon(surface,
                           [(x + self.hex_radius * cos(radians(90) + 2 * pi * _ / n),
@@ -144,13 +146,28 @@ class UI:
                 (self.text_offset / 4 + self.hex_radius * _, self.y_offset + (1.75 * self.hex_radius) * _))
             self.screen.blit(text, text_rect)
 
-    def draw_board(self):
+    def draw_board(self, show_mcts_predictions: bool = True):
         counter = 0
         for row in range(self.board_size):
             for column in range(self.board_size):
                 self.draw_hexagon(self.screen, self.black, self.get_coordinates(row, column), counter)
                 counter += 1
         self.draw_text()
+
+        # Filled polygons gradient-coloured based on MCTS predictions
+        # (i.e. normalized #visits per node)
+        if show_mcts_predictions:
+            try:
+                n = 6
+                for (row, column) in mcts_predictions.keys():
+                    x, y = self.get_coordinates(row, column)
+                    gfxdraw.filled_polygon(self.screen,
+                                           [(x + self.hex_radius * cos(radians(90) + 2 * pi * _ / n),
+                                             y + self.hex_radius * sin(radians(90) + 2 * pi * _ / n))
+                                            for _ in range(n)],
+                                           self.green + (mcts_predictions[(row, column)],))
+            except NameError:
+                pass
 
     def get_coordinates(self, row: int, column: int):
         x = self.x_offset + (2 * self.hex_radius) * column + self.hex_radius * row
@@ -187,3 +204,18 @@ class UI:
             self.screen.blit(text, text_rect)
 
         return self.node
+
+    def show_mcts_predictions(self, output: list, available_pos: list):
+        global mcts_predictions
+        # Remove position played by MCTS player
+        visits = [node[1] for node in output]
+        output.pop(np.argmax(visits))
+        # Get normalized visits
+        normalized_visits = self.get_normalized_visits([node[1] for node in output])
+        mcts_predictions = {(row, column): alpha_value for ((row, column), alpha_value) in
+                            zip(available_pos, normalized_visits)}
+
+    def get_normalized_visits(self, visits: list):
+        normalized_visits = [node_visits - min(visits) for node_visits in visits]
+        # Maximum set to 200 instead of 255 (RGBA)
+        return [int(node_visits / max(normalized_visits) * 200) for node_visits in normalized_visits]

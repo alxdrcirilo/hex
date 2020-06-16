@@ -119,7 +119,7 @@ class Logic:
             x, y = self.ui.get_true_coordinates(node)
             # Debug: random player
             # x, y = choice(self.get_possible_moves(self.logger))
-            # self.mcts = MCTS(board_state=self.logger, logic=self, starting_player=self.ui.BLUE_PLAYER)
+            # self.mcts = MCTS(logic=self, ui=self.ui, board_state=self.logger, starting_player=self.ui.BLUE_PLAYER)
             # x, y = self.mcts.start(itermax=self.itermax, verbose=False)
 
         # AI player
@@ -127,8 +127,8 @@ class Logic:
             # Debug: random player
             # x, y = choice(self.get_possible_moves(self.logger))
             # MCTS player
-            self.mcts = MCTS(board_state=self.logger, logic=self, starting_player=self.ui.RED_PLAYER)
-            x, y = self.mcts.start(itermax=self.itermax, verbose=True)
+            self.mcts = MCTS(logic=self, ui=self.ui, board_state=self.logger, starting_player=self.ui.RED_PLAYER)
+            x, y = self.mcts.start(itermax=self.itermax, verbose=True, show_predictions=True)
 
         assert self.is_node_free((x, y), self.logger), "node is busy"
         self.make_move((x, y), player)

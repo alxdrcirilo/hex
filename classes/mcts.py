@@ -25,10 +25,11 @@ class Node(object):
 
 
 class MCTS:
-    def __init__(self, board_state, logic, starting_player):
+    def __init__(self, logic, ui, board_state, starting_player):
+        self.logic = logic
+        self.ui = ui
         self.root_state = copy.copy(board_state)
         self.state = copy.copy(board_state)
-        self.logic = logic
         self.starting_player = starting_player
         self.players = [1, 2]
         self.players.remove(self.starting_player)
@@ -36,7 +37,7 @@ class MCTS:
         self.turn = {True: self.starting_player, False: self.other_player}
         self.turn_state = True
 
-    def start(self, itermax: int, verbose: bool = True):
+    def start(self, itermax: int, verbose: bool = False, show_predictions: bool = False):
         root_node = Node(self.logic, self.root_state)
 
         for _ in track(range(itermax), description="MCTS:", total=itermax):
@@ -93,11 +94,19 @@ class MCTS:
             root_node.wins += win_value
             root_node.visits += 1
 
-        result = root_node.children[np.argmax([node.visits for node in root_node.children])].move
+        visits = [node.visits for node in root_node.children]
+        result = root_node.children[np.argmax(visits)].move
 
         output = [(node.wins, node.visits, node.move) for node in root_node.children]
         if verbose:
             self.print_output(output, result)
+        if show_predictions:
+            # Get a temporary board state to get the possible moves
+            temp_state = self.state
+            x, y = result
+            temp_state[x][y] = self.starting_player
+            available_pos = self.logic.get_possible_moves(temp_state)
+            self.ui.show_mcts_predictions(output, available_pos)
 
         return result
 
@@ -122,6 +131,7 @@ class MCTS:
         return value
 
     def print_output(self, output, result):
+        output.sort(key=lambda k: [k[2][0], k[2][1]])
         console = Console()
 
         table = Table(show_header=True, header_style="bold red")
