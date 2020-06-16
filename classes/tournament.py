@@ -7,7 +7,6 @@ import pygame
 
 from classes.game import Game
 
-# Plotting and rating
 import pandas as pd
 from trueskill import Rating, rate_1vs1
 
@@ -31,7 +30,7 @@ class Tournament:
         while not game.winner:
             game.play()
 
-    def start(self):
+    def championship(self):
         # r1 (BLUE) r2 (RED)
         r1, r2 = Rating(), Rating()
 
