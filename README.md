@@ -1,6 +1,6 @@
 # Hex
 
->Hex is a strategy board game for two players played on a hexagonal grid, theoretically of any size and several possible shapes, but traditionally as an 11×11 rhombus. Players alternate placing markers or stones on unoccupied spaces in an attempt to link their opposite sides of the board in an unbroken chain. One player must win; there are no draws [[1]][wiki].
+>Hex is a strategy board game for two players played on a hexagonal grid, theoretically of any size and several possible shapes, but traditionally as an 11×11 rhombus. Players alternate placing markers or stones on unoccupied spaces in an attempt to link their opposite sides of the board in an unbroken chain. One player must win; there are no draws ([Wikipedia][wiki]).
 
 ![gui](https://github.com/alxdrcirilo/Hex/blob/master/imgs/gui.png)
 
